@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* REQ: OFP-UI-001, OFP-UI-010, OFP-UI-013, OFP-UI-014
+ * Globales Styling: heller, freundlicher Look mit stone/yellow/rose.
+ */
+
+html,
+body {
+  @apply min-h-screen bg-stone-50 text-stone-700 antialiased;
+}
+
+body {
+  @apply flex flex-col;
+}
+
+main {
+  @apply flex-1;
+}
+

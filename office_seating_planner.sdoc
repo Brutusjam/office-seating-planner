@@ -1,0 +1,397 @@
+[DOCUMENT]
+TITLE: Office Seating Planner – Software Requirements Specification
+UID: OFP-SRS-001
+VERSION: 2.0
+STATUS: DRAFT
+AUTHOR: Product Owner
+CREATED_ON: 2026-01-27
+
+[SECTIONS]
+
+[SECTION]
+TITLE: Project Overview and Design Philosophy
+
+[FREE_TEXT]
+The Office Seating Planner is a web application to manage office seating
+for a team of 9 employees across two rooms. The application must visualize
+the exact physical floor plan using a custom grid layout and support weekly
+planning via drag and drop. The app runs on an internal network without
+authentication.
+[/FREE_TEXT]
+
+[REQUIREMENT]
+UID: OFP-FUNC-001
+TITLE: Office Seating Planner Scope
+STATEMENT: The system SHALL allow planning and visualizing office seating for 9 employees in two rooms using a custom floor plan.
+STATUS: APPROVED
+RATIONALE: The team size and room count are fixed for this deployment.
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-001
+TITLE: Design Style
+STATEMENT: The system UI SHALL follow a light and friendly visual style with warm colors, high whitespace, and no dark or gloomy themes.
+STATUS: APPROVED
+RATIONALE: The tool is used daily and should feel welcoming and low-stress.
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-SEC-001
+TITLE: Authentication
+STATEMENT: The system SHALL NOT require user authentication and SHALL be accessible on an internal network without login.
+STATUS: APPROVED
+RATIONALE: The tool is used only on a trusted internal network.
+[/REQUIREMENT]
+[/SECTION]
+
+
+[SECTION]
+TITLE: Technology Stack
+
+[REQUIREMENT]
+UID: OFP-TECH-001
+TITLE: Framework
+STATEMENT: The system SHALL be implemented using Next.js 15 with the App Router.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-TECH-002
+TITLE: Language
+STATEMENT: The system SHALL be implemented in TypeScript with strict typing enabled.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-TECH-003
+TITLE: Styling
+STATEMENT: The system SHALL use Tailwind CSS for all styling.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-TECH-004
+TITLE: UI Primitives
+STATEMENT: The system SHALL use Radix UI primitives (Dialogs, Tabs, Tooltips) and SHALL style them with Tailwind CSS without using pre-styled Shadcn components.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-TECH-005
+TITLE: Icons
+STATEMENT: The system SHALL use Heroicons (Outline) or Phosphor Icons (Light) for icons.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-TECH-006
+TITLE: Drag and Drop Library
+STATEMENT: The system SHALL use @dnd-kit/core, including Sortable and Modifiers, for drag and drop functionality.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-TECH-007
+TITLE: Database and ORM
+STATEMENT: The system SHALL use SQLite as a local file database and Prisma ORM for data access.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-TECH-008
+TITLE: Deployment
+STATEMENT: The system SHALL be deployable as a Docker container on Fly.io with a persistent volume for the SQLite database.
+STATUS: APPROVED
+[/REQUIREMENT]
+[/SECTION]
+
+
+[SECTION]
+TITLE: Design System and Color Palette
+
+[FREE_TEXT]
+The application uses a soft, warm palette with stone, yellow, and rose
+colors. Shapes are rounded and friendly. Default Slate/Gray themes
+MUST NOT be used.
+[/FREE_TEXT]
+
+[REQUIREMENT]
+UID: OFP-UI-010
+TITLE: Background Colors
+STATEMENT: The main app background SHALL use a warm light gray such as Tailwind bg-stone-50 and cards/desks SHALL use bg-white with shadow-sm.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-011
+TITLE: Accent Colors
+STATEMENT: The primary accent color for selection and hover states SHALL be based on Tailwind yellow-100 to yellow-400.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-012
+TITLE: Occupied and Alert Colors
+STATEMENT: Occupied or conflict states SHALL be represented using Tailwind rose-100 to rose-400.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-013
+TITLE: Text and Neutral Colors
+STATEMENT: Neutral borders and primary text SHALL use Tailwind stone-200 for borders and stone-600 for text.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-014
+TITLE: Shape and Corners
+STATEMENT: The system SHALL use rounded-xl for cards and desks.
+STATUS: APPROVED
+[/REQUIREMENT]
+[/SECTION]
+
+
+[SECTION]
+TITLE: Floor Plan Layout and Grid Model
+
+[FREE_TEXT]
+The core of the system is a grid-based visualization of the exact physical
+floor plan. A 12x12 grid is used as a conceptual canvas. Desks are grouped
+in four zones and positioned through grid coordinates stored in the database.
+[/FREE_TEXT]
+
+[REQUIREMENT]
+UID: OFP-FLOOR-001
+TITLE: Grid Layout
+STATEMENT: The system SHALL represent the office floor plan as a CSS Grid of 12 columns by 12 rows.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-FLOOR-002
+TITLE: Desk Zones
+STATEMENT: The desk layout SHALL contain four zones: Zone A with two large vertically stacked desks, Zone B with one large desk below Zone A, Zone C with an L or T shaped cluster, and Zone D with one wide desk.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-FLOOR-003
+TITLE: Desk Position Storage
+STATEMENT: Each desk SHALL store its position and size in the database using gridX, gridY, gridW, and gridH to map to CSS grid-column-start, grid-row-start, column span, and row span.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-FLOOR-004
+TITLE: Desk Rotation
+STATEMENT: Each desk MAY optionally specify a rotation of 0 or 90 degrees in the database to represent horizontal or vertical orientation.
+STATUS: APPROVED
+[/REQUIREMENT]
+[/SECTION]
+
+
+[SECTION]
+TITLE: Data Model
+
+[FREE_TEXT]
+The data model is defined in Prisma and persisted in SQLite. It covers
+employees, recurring work schedules, absences, desks, and seating
+assignments.
+[/FREE_TEXT]
+
+[REQUIREMENT]
+UID: OFP-DATA-001
+TITLE: Employee Entity
+STATEMENT: The system SHALL define an Employee entity with fields id, name, initials, avatarColor, preferences, and relations to WorkSchedule, Absence, and Assignment as specified in the SRS.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-DATA-002
+TITLE: WorkSchedule Entity
+STATEMENT: The system SHALL define a WorkSchedule entity with a 1:1 relation to Employee and boolean flags plus notes for each weekday (monday to friday).
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-DATA-003
+TITLE: Absence Entity
+STATEMENT: The system SHALL define an Absence entity with a 1:n relation to Employee, storing startDate, endDate, and reason.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-DATA-004
+TITLE: Desk Entity
+STATEMENT: The system SHALL define a Desk entity with label, gridX, gridY, gridW, gridH, rotation, and a relation to Assignment.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-DATA-005
+TITLE: Assignment Entity and Uniqueness
+STATEMENT: The system SHALL define an Assignment entity with date, employeeId, deskId, and relations to Employee and Desk, and SHALL enforce uniqueness of (date, employeeId) and (date, deskId).
+STATUS: APPROVED
+[/REQUIREMENT]
+[/SECTION]
+
+
+[SECTION]
+TITLE: Backend Logic – Availability
+
+[FREE_TEXT]
+Availability of employees for a given date is computed based on absences
+and their recurring weekly work schedule.
+[/FREE_TEXT]
+
+[REQUIREMENT]
+UID: OFP-BACK-001
+TITLE: Absence Check
+STATEMENT: For a given date, if the date lies within any Absence.startDate to Absence.endDate range for an employee, the employee SHALL be marked UNAVAILABLE with the reason from Absence.reason.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-BACK-002
+TITLE: Weekly Schedule Check
+STATEMENT: If no absence applies and the corresponding weekday boolean in WorkSchedule is false, the employee SHALL be marked UNAVAILABLE with the associated schedule note (e.g., mondayNote).
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-BACK-003
+TITLE: Default Availability
+STATEMENT: If no absence and no weekly schedule exclusion apply for a given date, the employee SHALL be marked AVAILABLE.
+STATUS: APPROVED
+[/REQUIREMENT]
+[/SECTION]
+
+
+[SECTION]
+TITLE: Frontend – Dashboard and Navigation
+
+[REQUIREMENT]
+UID: OFP-UI-020
+TITLE: Weekday Tabs
+STATEMENT: The dashboard SHALL include weekday tabs for Monday to Friday, with the active tab visually highlighted using bg-yellow-200 and text-stone-800.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-021
+TITLE: Employee Sidebar
+STATEMENT: The dashboard SHALL provide a sidebar listing all employees, showing availability status and allowing drag and drop for available employees.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-022
+TITLE: Status Indicators
+STATEMENT: The employee sidebar SHALL display a small colored dot per employee, using bg-emerald-400 for present (AVAILABLE) and bg-rose-300 for absent or unavailable.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-023
+TITLE: Unavailable Employees Interaction
+STATEMENT: Unavailable employees SHALL be rendered with reduced opacity, display their unavailability reason, and SHALL NOT be draggable.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-024
+TITLE: Desk Map Rendering
+STATEMENT: The main canvas SHALL render all desks as white rounded rectangles with border-stone-200, positioned by their grid coordinates.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-025
+TITLE: Desk Hover and Drop Feedback
+STATEMENT: When a draggable employee is dragged over a desk, the desk background SHALL change to a soft highlight (e.g., bg-yellow-50) and on drop the corresponding Assignment SHALL be saved.
+STATUS: APPROVED
+[/REQUIREMENT]
+[/SECTION]
+
+
+[SECTION]
+TITLE: Frontend – Employee Settings Modal
+
+[REQUIREMENT]
+UID: OFP-UI-030
+TITLE: Settings Dialog Trigger
+STATEMENT: Each employee tile SHALL include a gear icon that opens an Employee Settings dialog.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-031
+TITLE: Dialog Implementation
+STATEMENT: The Employee Settings dialog SHALL be implemented using Radix UI Dialog primitives and styled as a clean white card with rounded corners and soft shadow.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-032
+TITLE: Weekly Schedule Tab
+STATEMENT: The settings dialog SHALL provide a \"Weekly Schedule\" tab with five checkboxes for Monday to Friday and, when unchecked, a text input field for the reason (e.g., \"School\").
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-033
+TITLE: Absences Tab
+STATEMENT: The settings dialog SHALL provide an \"Absences\" tab listing existing absences and an \"Add Absence\" function with a date range picker and reason input.
+STATUS: APPROVED
+[/REQUIREMENT]
+[/SECTION]
+
+
+[SECTION]
+TITLE: Drag and Drop and State Management
+
+[REQUIREMENT]
+UID: OFP-DND-001
+TITLE: Drag and Drop Library Usage
+STATEMENT: The drag and drop interactions between employees and desks SHALL be implemented using @dnd-kit/core with Sortable and Modifiers.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-DND-002
+TITLE: Optimistic Updates
+STATEMENT: When an employee is dropped onto a desk, the UI state SHALL be updated optimistically before the server-side Assignment is persisted.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-DND-003
+TITLE: Assignment Persistence
+STATEMENT: The system SHALL persist seating assignments via server actions that enforce the uniqueness constraints on (date, employeeId) and (date, deskId).
+STATUS: APPROVED
+[/REQUIREMENT]
+[/SECTION]
+
+
+[SECTION]
+TITLE: Deployment and Persistence
+
+[REQUIREMENT]
+UID: OFP-DEP-001
+TITLE: Docker Containerization
+STATEMENT: The system SHALL be runnable as a Docker container image suitable for deployment on Fly.io.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-DEP-002
+TITLE: Persistent Volume
+STATEMENT: The SQLite database file SHALL be stored on a persistent volume so that seating plans and configurations survive container restarts and deployments.
+STATUS: APPROVED
+[/REQUIREMENT]
+[/SECTION]
+
+[/SECTIONS]
+[/DOCUMENT]
+

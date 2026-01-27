@@ -1,0 +1,20 @@
+# REQ: OFP-TECH-008, OFP-DEP-001, OFP-DEP-002
+# Beispielkonfiguration für Deployment auf Fly.io mit persistentem Volume.
+
+app = "office-seating-planner"
+primary_region = "ams"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[mounts]]
+  source = "office_seating_data"
+  destination = "/data"
+
