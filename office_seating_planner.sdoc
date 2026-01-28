@@ -210,7 +210,7 @@ STATUS: APPROVED
 [REQUIREMENT]
 UID: OFP-DATA-002
 TITLE: WorkSchedule Entity
-STATEMENT: The system SHALL define a WorkSchedule entity with a 1:1 relation to Employee and boolean flags plus notes for each weekday (monday to friday).
+STATEMENT: The system SHALL define a WorkSchedule entity with a 1:1 relation to Employee and, for each weekday (monday to friday), separate boolean flags for morning and afternoon availability plus an optional note field.
 STATUS: APPROVED
 [/REQUIREMENT]
 
@@ -288,7 +288,14 @@ STATUS: APPROVED
 [REQUIREMENT]
 UID: OFP-UI-022
 TITLE: Status Indicators
-STATEMENT: The employee sidebar SHALL display a small colored dot per employee, using bg-emerald-400 for present (AVAILABLE) and bg-rose-300 for absent or unavailable.
+STATEMENT: The employee sidebar SHALL display two small colored dots per employee (morning and afternoon), using bg-emerald-400 for present (AVAILABLE) and bg-rose-300 for absent or unavailable; a full green pair indicates full-day presence, mixed colors indicate half-day presence.
+STATUS: APPROVED
+[/REQUIREMENT]
+
+[REQUIREMENT]
+UID: OFP-UI-026
+TITLE: Desk Header Full-Day Drop
+STATEMENT: Drag and drop of an available employee onto the header area of a desk SHALL assign the employee to both half-day slots (MORNING and AFTERNOON) for that desk on the selected date.
 STATUS: APPROVED
 [/REQUIREMENT]
 

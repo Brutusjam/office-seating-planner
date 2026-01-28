@@ -4,6 +4,9 @@
 app = "office-seating-planner"
 primary_region = "ams"
 
+[vm]
+  memory = "512mb"
+
 [build]
   dockerfile = "Dockerfile"
 

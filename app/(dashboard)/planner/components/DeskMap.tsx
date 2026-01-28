@@ -5,41 +5,74 @@
  * DeskMap: 12x12 CSS-Grid mit DeskSlotContainern für MORNING/AFTERNOON.
  */
 import type { Desk, Employee } from "@/generated/prisma/client";
-import type { EmployeeAvailability } from "@/lib/domain/availability";
-import type { TimeSlot } from "@/lib/domain/types";
+import type { EmployeeDayAvailability } from "@/lib/domain/availability";
 import { DeskSlotContainer } from "./DeskSlotContainer";
+
+const FLOOR_COLS = 24;
+const FLOOR_ROWS = 18;
 
 interface DeskMapProps {
   desks: Desk[];
   employees: Employee[];
-  availabilityByEmployee: Record<number, EmployeeAvailability>;
+  availabilityByEmployee: Record<number, EmployeeDayAvailability>;
   assignmentState: Record<string, number | null>; // `${deskId}_${slot}` -> employeeId
+  highlightFreeDesks?: boolean;
 }
 
 export function DeskMap(props: DeskMapProps) {
-  const { desks, employees, availabilityByEmployee, assignmentState } = props;
+  const {
+    desks,
+    employees,
+    availabilityByEmployee,
+    assignmentState,
+    highlightFreeDesks
+  } = props;
 
   return (
-    <div className="aspect-[4/3] w-full rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
-      <div className="grid h-full w-full grid-cols-12 grid-rows-12 gap-1">
-        {desks.map((desk) => (
-          <div
-            key={desk.id}
-            className="relative"
-            style={{
-              gridColumn: `${desk.gridX} / span ${desk.gridW}`,
-              gridRow: `${desk.gridY} / span ${desk.gridH}`
-            }}
-          >
-            <DeskSlotContainer
-              desk={desk}
-              employees={employees}
-              availabilityByEmployee={availabilityByEmployee}
-              morningEmployeeId={assignmentState[`${desk.id}_MORNING`] ?? null}
-              afternoonEmployeeId={assignmentState[`${desk.id}_AFTERNOON`] ?? null}
-            />
-          </div>
-        ))}
+    <div className="aspect-[3/2] min-h-[520px] w-full rounded-xl border border-stone-200 bg-slate-50 p-4 shadow-sm">
+      <div
+        className="grid h-full w-full gap-1 rounded-lg bg-white/80"
+        style={{
+          gridTemplateColumns: `repeat(${FLOOR_COLS}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${FLOOR_ROWS}, minmax(0, 1fr))`,
+          backgroundImage:
+            "radial-gradient(circle at 1px 1px, rgba(148,163,184,0.18) 1px, transparent 0)",
+          backgroundSize: "18px 18px"
+        }}
+      >
+        {desks.map((desk) => {
+          const morningKey = `${desk.id}_MORNING`;
+          const afternoonKey = `${desk.id}_AFTERNOON`;
+          const isFree =
+            (assignmentState[morningKey] ?? null) === null &&
+            (assignmentState[afternoonKey] ?? null) === null;
+
+          return (
+            <div
+              key={desk.id}
+              className={[
+                "relative",
+                highlightFreeDesks && isFree
+                  ? "ring-2 ring-emerald-300/70 ring-offset-1 ring-offset-white"
+                  : ""
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              style={{
+                gridColumn: `${desk.gridX} / span ${desk.gridW}`,
+                gridRow: `${desk.gridY} / span ${desk.gridH}`
+              }}
+            >
+              <DeskSlotContainer
+                desk={desk}
+                employees={employees}
+                availabilityByEmployee={availabilityByEmployee}
+                morningEmployeeId={assignmentState[morningKey] ?? null}
+                afternoonEmployeeId={assignmentState[afternoonKey] ?? null}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

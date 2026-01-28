@@ -20,11 +20,27 @@ model Employee {
   name         String
   initials     String
   avatarColor  String
-  preferences  String?
+  preferences  Preference[]
 
   workSchedule WorkSchedule?
   absences     Absence[]
   assignments  Assignment[]
+}
+
+model Preference {
+  id         Int      @id @default(autoincrement())
+
+  employeeId Int
+  employee   Employee @relation(fields: [employeeId], references: [id])
+
+  deskId     Int
+  desk       Desk     @relation(fields: [deskId], references: [id])
+
+  /// Wochentag: 1 = Montag, ..., 5 = Freitag
+  weekday    Int
+  slot       TimeSlot
+
+  @@unique([employeeId, weekday, slot], name: "employeeId_weekday_slot")
 }
 
 model WorkSchedule {
@@ -32,16 +48,21 @@ model WorkSchedule {
   employeeId   Int      @unique
   employee     Employee @relation(fields: [employeeId], references: [id])
 
-  monday       Boolean  @default(true)
-  mondayNote   String?
-  tuesday      Boolean  @default(true)
-  tuesdayNote  String?
-  wednesday    Boolean  @default(true)
-  wednesdayNote String?
-  thursday     Boolean  @default(true)
-  thursdayNote String?
-  friday       Boolean  @default(true)
-  fridayNote   String?
+  mondayMorning    Boolean  @default(true)
+  mondayAfternoon  Boolean  @default(true)
+  mondayNote       String?
+  tuesdayMorning   Boolean  @default(true)
+  tuesdayAfternoon Boolean  @default(true)
+  tuesdayNote      String?
+  wednesdayMorning Boolean  @default(true)
+  wednesdayAfternoon Boolean @default(true)
+  wednesdayNote    String?
+  thursdayMorning  Boolean  @default(true)
+  thursdayAfternoon Boolean @default(true)
+  thursdayNote     String?
+  fridayMorning    Boolean  @default(true)
+  fridayAfternoon  Boolean  @default(true)
+  fridayNote       String?
 }
 
 model Absence {
@@ -62,8 +83,10 @@ model Desk {
   gridW       Int
   gridH       Int
   rotation    Int          @default(0)
+  titleColor  String?
 
   assignments Assignment[]
+  preferences Preference[]
 }
 
 model Assignment {

@@ -7,22 +7,36 @@
 
 import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
-import type { Absence, Employee, WorkSchedule } from "@/generated/prisma/client";
-import type { EmployeeAvailability } from "@/lib/domain/availability";
+import type {
+  Absence,
+  Desk,
+  Employee,
+  Preference,
+  WorkSchedule
+} from "@/generated/prisma/client";
+import type { EmployeeDayAvailability } from "@/lib/domain/availability";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { EmployeeSettingsDialog } from "./EmployeeSettingsDialog";
 
 interface DraggableEmployeeProps {
-  employee: Employee & { workSchedule?: WorkSchedule | null; absences?: Absence[] };
-  availability: EmployeeAvailability | null;
+  employee: Employee & {
+    workSchedule?: WorkSchedule | null;
+    absences?: Absence[];
+    preferences?: Preference[];
+  };
+  availability: EmployeeDayAvailability | null;
+  desks: Desk[];
 }
 
 export function DraggableEmployee(props: DraggableEmployeeProps) {
-  const { employee, availability } = props;
+  const { employee, availability, desks } = props;
 
   const [open, setOpen] = useState(false);
 
-  const isAvailable = availability?.status !== "UNAVAILABLE";
+  const isAvailable =
+    !!availability &&
+    (availability.morning.status === "AVAILABLE" ||
+      availability.afternoon.status === "AVAILABLE");
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -35,9 +49,6 @@ export function DraggableEmployee(props: DraggableEmployeeProps) {
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`
       }
     : {};
-
-  const statusColor =
-    availability?.status === "AVAILABLE" ? "bg-emerald-400" : "bg-rose-300";
 
   return (
     <div
@@ -63,19 +74,28 @@ export function DraggableEmployee(props: DraggableEmployeeProps) {
           <span className="text-xs font-medium text-stone-800">
             {employee.name}
           </span>
-          {availability?.reason && (
-            <span className="text-[11px] text-stone-500">
-              {availability.reason}
-            </span>
-          )}
         </div>
       </div>
       <div className="flex items-center gap-2">
         {availability && (
-          <span
-            className={`h-2.5 w-2.5 rounded-full ${statusColor}`}
-            title={availability.reason ?? undefined}
-          />
+          <div className="flex items-center gap-1">
+            <span
+              className={`h-2.5 w-2.5 rounded-full ${
+                availability.morning.status === "AVAILABLE"
+                  ? "bg-emerald-400"
+                  : "bg-rose-300"
+              }`}
+              title={availability.morning.reason ?? undefined}
+            />
+            <span
+              className={`h-2.5 w-2.5 rounded-full ${
+                availability.afternoon.status === "AVAILABLE"
+                  ? "bg-emerald-400"
+                  : "bg-rose-300"
+              }`}
+              title={availability.afternoon.reason ?? undefined}
+            />
+          </div>
         )}
         <button
           type="button"
@@ -90,6 +110,8 @@ export function DraggableEmployee(props: DraggableEmployeeProps) {
         employee={employee}
         workSchedule={employee.workSchedule ?? null}
         absences={employee.absences ?? []}
+        preferences={employee.preferences ?? []}
+        desks={desks}
         open={open}
         onOpenChange={setOpen}
       />

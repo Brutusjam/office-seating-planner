@@ -8,7 +8,7 @@
  * - lädt Desks & Assignments für ausgewähltes Datum + Slot
  */
 import { prisma } from "@/lib/prisma";
-import { getEmployeeAvailabilityForDate } from "@/lib/domain/availability";
+import { getEmployeeHalfDayAvailabilityForDate } from "@/lib/domain/availability";
 import type { TimeSlot } from "@/lib/domain/types";
 import { PlannerClient } from "./planner-client";
 import { WeekTabs } from "./WeekTabs";
@@ -35,10 +35,37 @@ function startOfWeek(date: Date): Date {
   return d;
 }
 
-function formatDDMM(d: Date): string {
-  return [d.getDate(), d.getMonth() + 1]
-    .map((n) => String(n).padStart(2, "0"))
-    .join(".");
+const MONTH_NAMES = [
+  "Januar",
+  "Februar",
+  "März",
+  "April",
+  "Mai",
+  "Juni",
+  "Juli",
+  "August",
+  "September",
+  "Oktober",
+  "November",
+  "Dezember"
+];
+
+const WEEKDAY_NAMES = [
+  "Sonntag",
+  "Montag",
+  "Dienstag",
+  "Mittwoch",
+  "Donnerstag",
+  "Freitag",
+  "Samstag"
+];
+
+function formatLongDateLabel(d: Date, withYear: boolean): string {
+  const weekday = WEEKDAY_NAMES[d.getDay()];
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = MONTH_NAMES[d.getMonth()];
+  const base = `${weekday}, ${day}. ${month}`;
+  return withYear ? `${base} ${d.getFullYear()}` : base;
 }
 
 export default async function PlannerPage(props: {
@@ -58,7 +85,8 @@ export default async function PlannerPage(props: {
     prisma.employee.findMany({
       include: {
         workSchedule: true,
-        absences: true
+        absences: true,
+        preferences: true
       }
     }),
     prisma.desk.findMany(),
@@ -75,24 +103,38 @@ export default async function PlannerPage(props: {
     })
   ]);
 
-  const availability = getEmployeeAvailabilityForDate(date, employees);
-
   const dateISO = date.toISOString().slice(0, 10);
   const monday = startOfWeek(date);
   const friday = new Date(monday);
   friday.setDate(monday.getDate() + 4);
 
+  const availability = getEmployeeHalfDayAvailabilityForDate(date, employees);
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h2 className="text-base font-semibold text-stone-800">
-            Woche vom {formatDDMM(monday)} (Mo) bis {formatDDMM(friday)} (Fr)
-          </h2>
-          <p className="text-xs text-stone-500">
-            {/* REQ: OFP-UI-020 */}
-            Wähle den Wochentag, Slots werden pro Pult als Vormittag/Nachmittag dargestellt.
-          </p>
+    <div className="flex h-full flex-col space-y-4">
+      <div className="flex items-start justify-between gap-6">
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-stone-800">
+              Woche vom {formatLongDateLabel(monday, false)} bis{" "}
+              {formatLongDateLabel(friday, true)}
+            </h2>
+            <p className="text-xs text-stone-500">
+              {/* REQ: OFP-UI-020 */}
+              Wähle den Wochentag, Slots werden pro Pult als Vormittag/Nachmittag dargestellt.
+            </p>
+          </div>
+          <div className="mt-1 inline-flex flex-wrap items-center gap-3 rounded-lg bg-stone-50 px-2.5 py-1.5 text-[11px] text-stone-600">
+            <span className="font-medium text-stone-700">Legende:</span>
+            <span className="inline-flex items-center gap-1">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+              verfügbar / im Büro
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <span className="h-2.5 w-2.5 rounded-full bg-rose-300" />
+              abwesend / nicht im Büro
+            </span>
+          </div>
         </div>
         <WeekTabs dateISO={dateISO} slot={slot} />
       </div>

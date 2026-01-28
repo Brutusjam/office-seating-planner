@@ -44,3 +44,56 @@ export async function assignEmployeeToDesk(
   revalidatePath("/planner");
 }
 
+/** Präferenzen für einen bestimmten Tag (beide Halbtage) anwenden. */
+export async function applyPreferencesForDate(dateISO: string): Promise<void> {
+  if (!dateISO) return;
+
+  const parsed = new Date(dateISO);
+  if (Number.isNaN(parsed.getTime())) return;
+
+  const day = new Date(
+    parsed.getFullYear(),
+    parsed.getMonth(),
+    parsed.getDate()
+  );
+  const weekday = day.getDay(); // 1=Mo,...,5=Fr
+
+  if (weekday < 1 || weekday > 5) {
+    // Wochenende: keine Präferenzen anwenden
+    return;
+  }
+
+  const preferences = await prisma.preference.findMany({
+    where: { weekday }
+  });
+
+  if (preferences.length === 0) return;
+
+  await prisma.$transaction(async (tx) => {
+    for (const pref of preferences) {
+      // Bestehende Zuordnungen für diesen Tag/Slot/Desk und Tag/Slot/Employee entfernen
+      await tx.assignment.deleteMany({
+        where: {
+          date: day,
+          slot: pref.slot,
+          OR: [
+            { deskId: pref.deskId },
+            { employeeId: pref.employeeId }
+          ]
+        }
+      });
+
+      await tx.assignment.create({
+        data: {
+          date: day,
+          slot: pref.slot,
+          deskId: pref.deskId,
+          employeeId: pref.employeeId
+        }
+      });
+    }
+  });
+
+  revalidatePath("/planner");
+}
+

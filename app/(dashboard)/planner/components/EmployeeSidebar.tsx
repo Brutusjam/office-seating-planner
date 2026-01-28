@@ -4,17 +4,26 @@
  */
 "use client";
 
-import type { Employee } from "@/generated/prisma/client";
-import type { EmployeeAvailability } from "@/lib/domain/availability";
+import type { Desk, Employee } from "@/generated/prisma/client";
+import type { EmployeeDayAvailability } from "@/lib/domain/availability";
 import { DraggableEmployee } from "./DraggableEmployee";
 
 interface EmployeeSidebarProps {
   employees: Employee[];
-  availabilityByEmployee: Record<number, EmployeeAvailability>;
+  availabilityByEmployee: Record<number, EmployeeDayAvailability>;
+  desks: Desk[];
+  onApplyPreferences?: () => void;
+  applyingPreferences?: boolean;
 }
 
 export function EmployeeSidebar(props: EmployeeSidebarProps) {
-  const { employees, availabilityByEmployee } = props;
+  const {
+    employees,
+    availabilityByEmployee,
+    desks,
+    onApplyPreferences,
+    applyingPreferences
+  } = props;
 
   return (
     <div className="h-full rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
@@ -27,9 +36,20 @@ export function EmployeeSidebar(props: EmployeeSidebarProps) {
             key={emp.id}
             employee={emp}
             availability={availabilityByEmployee[emp.id] ?? null}
+            desks={desks}
           />
         ))}
       </div>
+      {onApplyPreferences && (
+        <button
+          type="button"
+          className="mt-3 w-full rounded-full bg-yellow-300 px-3 py-1.5 text-xs font-medium text-stone-800 hover:bg-yellow-400 disabled:cursor-not-allowed disabled:bg-stone-200 disabled:text-stone-500"
+          onClick={onApplyPreferences}
+          disabled={applyingPreferences}
+        >
+          {applyingPreferences ? "Präferenzen werden eingetragen..." : "Präferenzen eintragen"}
+        </button>
+      )}
     </div>
   );
 }

@@ -46,10 +46,10 @@ export function WeekTabs(props: { dateISO: string; slot: TimeSlot }) {
   const nextMondayISO = toLocalISO(nextMonday);
 
   return (
-    <div className="inline-flex items-center gap-1 rounded-full bg-stone-100 p-1 text-sm">
+    <div className="inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-2 py-1.5 text-base">
       <Link
-        href={`/planner?date=${prevMondayISO}&slot=${slotParam(slot)}`}
-        className="px-2 py-1 rounded-full text-stone-500 transition-colors hover:bg-stone-200 hover:text-stone-700"
+        href={`?date=${prevMondayISO}&slot=${slotParam(slot)}`}
+        className="flex h-9 w-9 items-center justify-center rounded-full text-stone-500 transition-colors hover:bg-stone-200 hover:text-stone-700"
         aria-label="Vorherige Woche"
       >
         &#171;&#171;
@@ -63,9 +63,9 @@ export function WeekTabs(props: { dateISO: string; slot: TimeSlot }) {
         return (
           <Link
             key={label}
-            href={`/planner?date=${iso}&slot=${slotParam(slot)}`}
+            href={`?date=${iso}&slot=${slotParam(slot)}`}
             className={[
-              "px-3 py-1 rounded-full transition-colors",
+              "px-4 py-1.5 rounded-full transition-colors",
               isActive
                 ? "bg-yellow-200 text-stone-800"
                 : "text-stone-500 hover:text-stone-700"
@@ -76,8 +76,8 @@ export function WeekTabs(props: { dateISO: string; slot: TimeSlot }) {
         );
       })}
       <Link
-        href={`/planner?date=${nextMondayISO}&slot=${slotParam(slot)}`}
-        className="px-2 py-1 rounded-full text-stone-500 transition-colors hover:bg-stone-200 hover:text-stone-700"
+        href={`?date=${nextMondayISO}&slot=${slotParam(slot)}`}
+        className="flex h-9 w-9 items-center justify-center rounded-full text-stone-500 transition-colors hover:bg-stone-200 hover:text-stone-700"
         aria-label="Nächste Woche"
       >
         &#187;&#187;

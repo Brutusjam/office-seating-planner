@@ -19,6 +19,18 @@ export interface EmployeeAvailability {
   reason: string | null;
 }
 
+export interface HalfDayAvailability {
+  slot: "MORNING" | "AFTERNOON";
+  status: AvailabilityStatus;
+  reason: string | null;
+}
+
+export interface EmployeeDayAvailability {
+  employeeId: number;
+  morning: HalfDayAvailability;
+  afternoon: HalfDayAvailability;
+}
+
 export function getEmployeeAvailabilityForDate(
   date: Date,
   employees: EmployeeWithRelations[]
@@ -69,6 +81,82 @@ export function getEmployeeAvailabilityForDate(
   });
 }
 
+export function getEmployeeHalfDayAvailabilityForDate(
+  date: Date,
+  employees: EmployeeWithRelations[]
+): EmployeeDayAvailability[] {
+  const targetDate = startOfDay(date);
+
+  return employees.map((emp) => {
+    const base: EmployeeDayAvailability = {
+      employeeId: emp.id,
+      morning: {
+        slot: "MORNING",
+        status: "AVAILABLE",
+        reason: null
+      },
+      afternoon: {
+        slot: "AFTERNOON",
+        status: "AVAILABLE",
+        reason: null
+      }
+    };
+
+    // 1) Absence-Check (OFP-BACK-001): gilt für beide Halbtage
+    const absence = emp.absences.find((a) =>
+      isWithinRange(targetDate, a.startDate, a.endDate)
+    );
+
+    if (absence) {
+      return {
+        ...base,
+        morning: {
+          ...base.morning,
+          status: "UNAVAILABLE",
+          reason: absence.reason
+        },
+        afternoon: {
+          ...base.afternoon,
+          status: "UNAVAILABLE",
+          reason: absence.reason
+        }
+      };
+    }
+
+    const schedule = emp.workSchedule;
+    if (!schedule) {
+      // Kein Wochenplan hinterlegt → beide Halbtage verfügbar
+      return base;
+    }
+
+    const weekday = targetDate.getDay(); // 0=So,1=Mo,...6=Sa
+    const {
+      morningFlag,
+      afternoonFlag,
+      note
+    } = getHalfDayFlagsAndNote(schedule, weekday);
+
+    const morningUnavailable = !morningFlag;
+    const afternoonUnavailable = !afternoonFlag;
+
+    const reason = note ?? null;
+
+    return {
+      employeeId: emp.id,
+      morning: {
+        slot: "MORNING",
+        status: morningUnavailable ? "UNAVAILABLE" : "AVAILABLE",
+        reason: morningUnavailable ? reason : null
+      },
+      afternoon: {
+        slot: "AFTERNOON",
+        status: afternoonUnavailable ? "UNAVAILABLE" : "AVAILABLE",
+        reason: afternoonUnavailable ? reason : null
+      }
+    };
+  });
+}
+
 function startOfDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
@@ -84,20 +172,84 @@ function getScheduleFlagAndNote(
   schedule: WorkSchedule,
   weekday: number
 ): { flag: boolean; note?: string | null } {
+  // Mitarbeiter arbeitet, wenn Vormittag ODER Nachmittag aktiv ist
   switch (weekday) {
     case 1:
-      return { flag: schedule.monday, note: schedule.mondayNote };
+      return {
+        flag: schedule.mondayMorning || schedule.mondayAfternoon,
+        note: schedule.mondayNote
+      };
     case 2:
-      return { flag: schedule.tuesday, note: schedule.tuesdayNote };
+      return {
+        flag: schedule.tuesdayMorning || schedule.tuesdayAfternoon,
+        note: schedule.tuesdayNote
+      };
     case 3:
-      return { flag: schedule.wednesday, note: schedule.wednesdayNote };
+      return {
+        flag: schedule.wednesdayMorning || schedule.wednesdayAfternoon,
+        note: schedule.wednesdayNote
+      };
     case 4:
-      return { flag: schedule.thursday, note: schedule.thursdayNote };
+      return {
+        flag: schedule.thursdayMorning || schedule.thursdayAfternoon,
+        note: schedule.thursdayNote
+      };
     case 5:
-      return { flag: schedule.friday, note: schedule.fridayNote };
+      return {
+        flag: schedule.fridayMorning || schedule.fridayAfternoon,
+        note: schedule.fridayNote
+      };
     default:
       // Wochenende: standardmässig nicht verfügbar
       return { flag: false, note: "Wochenende" };
+  }
+}
+
+function getHalfDayFlagsAndNote(
+  schedule: WorkSchedule,
+  weekday: number
+): {
+  morningFlag: boolean;
+  afternoonFlag: boolean;
+  note?: string | null;
+} {
+  switch (weekday) {
+    case 1:
+      return {
+        morningFlag: schedule.mondayMorning,
+        afternoonFlag: schedule.mondayAfternoon,
+        note: schedule.mondayNote
+      };
+    case 2:
+      return {
+        morningFlag: schedule.tuesdayMorning,
+        afternoonFlag: schedule.tuesdayAfternoon,
+        note: schedule.tuesdayNote
+      };
+    case 3:
+      return {
+        morningFlag: schedule.wednesdayMorning,
+        afternoonFlag: schedule.wednesdayAfternoon,
+        note: schedule.wednesdayNote
+      };
+    case 4:
+      return {
+        morningFlag: schedule.thursdayMorning,
+        afternoonFlag: schedule.thursdayAfternoon,
+        note: schedule.thursdayNote
+      };
+    case 5:
+      return {
+        morningFlag: schedule.fridayMorning,
+        afternoonFlag: schedule.fridayAfternoon,
+        note: schedule.fridayNote
+      };
+    default:
+      return {
+        morningFlag: false,
+        afternoonFlag: false,
+        note: "Wochenende"
+      };
   }
 }
 

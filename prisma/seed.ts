@@ -18,6 +18,7 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   // Cleanup for idempotentes Seed
   await prisma.assignment.deleteMany();
+  await prisma.preference?.deleteMany?.();
   await prisma.absence.deleteMany();
   await prisma.workSchedule.deleteMany();
   await prisma.desk.deleteMany();
@@ -44,11 +45,16 @@ async function main() {
     await prisma.workSchedule.create({
       data: {
         employeeId: emp.id,
-        monday: true,
-        tuesday: true,
-        wednesday: true,
-        thursday: true,
-        friday: true
+        mondayMorning: true,
+        mondayAfternoon: true,
+        tuesdayMorning: true,
+        tuesdayAfternoon: true,
+        wednesdayMorning: true,
+        wednesdayAfternoon: true,
+        thursdayMorning: true,
+        thursdayAfternoon: true,
+        fridayMorning: true,
+        fridayAfternoon: true
       }
     });
   }
@@ -75,26 +81,50 @@ async function main() {
     });
   }
 
-  // Desk-Zonen A–D im 12x12 Grid
+  // Desk-Zonen A–D im Grid mit optionaler Titel-Farbe
   await prisma.desk.createMany({
     data: [
       // Zone A: zwei übereinanderliegende grosse Tische
-      { label: "EWK 1", gridX: 1, gridY: 1, gridW: 3, gridH: 2, rotation: 0 },
-      { label: "EWK 2", gridX: 1, gridY: 3, gridW: 3, gridH: 2, rotation: 0 },
-      // Zone B: grosser Tisch unterhalb Zone A
-      { label: "Steuern 1", gridX: 1, gridY: 6, gridW: 3, gridH: 2, rotation: 0 },
-      { label: "Steuern 2", gridX: 1, gridY: 8, gridW: 3, gridH: 2, rotation: 0 },
-      { label: "Steuern 3", gridX: 1, gridY: 11, gridW: 3, gridH: 2, rotation: 0 },
-      // Zone C: Cluster (vertikal + zwei horizontale)
-      { label: "C1", gridX: 5, gridY: 1, gridW: 2, gridH: 3, rotation: 90 },
-      { label: "C2", gridX: 7, gridY: 1, gridW: 3, gridH: 2, rotation: 0 },
-      { label: "C3", gridX: 7, gridY: 3, gridW: 3, gridH: 2, rotation: 0 },
+      { label: "EWK 1", gridX: 1, gridY: 1, gridW: 6, gridH: 2, rotation: 0, titleColor: "#FEF3C7" },
+      { label: "EWK 2", gridX: 1, gridY: 7, gridW: 6, gridH: 2, rotation: 0, titleColor: "#FEF3C7" },
+      // Zone B: grosse Steuern-Tische
+      { label: "Steuern 1", gridX: 9, gridY: 1, gridW: 6, gridH: 2, rotation: 0, titleColor: "#DBEAFE" },
+      { label: "Steuern 2", gridX: 9, gridY: 7, gridW: 6, gridH: 2, rotation: 0, titleColor: "#DBEAFE" },
+      { label: "Steuern 3", gridX: 9, gridY: 13, gridW: 6, gridH: 2, rotation: 0, titleColor: "#DBEAFE" },
+      // Zone C: Cluster (z.B. exIT)
+      { label: "Büro exIT", gridX: 17, gridY: 1, gridW: 6, gridH: 2, rotation: 0, titleColor: "#DCFCE7" },
       // Zone D: breiter Meeting-Tisch unten rechts
-      { label: "D1", gridX: 5, gridY: 11, gridW: 3, gridH: 2, rotation: 0 }
+      { label: "Information", gridX: 17, gridY: 13, gridW: 6, gridH: 2, rotation: 0, titleColor: "#FCE7F3" }
     ]
   });
 
   const allDesks = await prisma.desk.findMany();
+
+  // Beispiel-Präferenzen: erste zwei Mitarbeitende bevorzugen bestimmte Pulte
+  const dPref0 = allDesks[0];
+  const dPref1 = allDesks[1];
+
+  if (allEmployees[0] && dPref0) {
+    await prisma.preference.create({
+      data: {
+        employeeId: allEmployees[0].id,
+        deskId: dPref0.id,
+        weekday: 1, // Montag
+        slot: TimeSlot.MORNING
+      }
+    });
+  }
+
+  if (allEmployees[1] && dPref1) {
+    await prisma.preference.create({
+      data: {
+        employeeId: allEmployees[1].id,
+        deskId: dPref1.id,
+        weekday: 1, // Montag
+        slot: TimeSlot.AFTERNOON
+      }
+    });
+  }
 
   // Beispiel-Assignments für ein Datum mit Morning/Afternoon
   const exampleDate = new Date("2026-02-02");
