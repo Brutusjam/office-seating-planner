@@ -2,7 +2,7 @@
  * REQ: OFP-UI-024, OFP-DATA-005
  * Container für einen physischen Desk mit zwei Slot-Zonen (MORNING/AFTERNOON).
  */
-import type { Desk, Employee } from "@prisma/client";
+import type { Desk, Employee } from "@/generated/prisma/client";
 import type { EmployeeAvailability } from "@/lib/domain/availability";
 import { DroppableDeskSlot } from "./DroppableDeskSlot";
 

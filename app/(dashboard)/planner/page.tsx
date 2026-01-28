@@ -26,11 +26,27 @@ function parseSlot(searchParams: URLSearchParams): TimeSlot {
   return "MORNING";
 }
 
+function startOfWeek(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function formatDDMM(d: Date): string {
+  return [d.getDate(), d.getMonth() + 1]
+    .map((n) => String(n).padStart(2, "0"))
+    .join(".");
+}
+
 export default async function PlannerPage(props: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const rawParams = await (props.searchParams ?? Promise.resolve({}));
   const sp = new URLSearchParams(
-    Object.entries(props.searchParams ?? {}).flatMap(([k, v]) =>
+    Object.entries(rawParams).flatMap(([k, v]) =>
       Array.isArray(v) ? v.map((vv) => [k, vv]) : [[k, v ?? ""]]
     )
   );
@@ -62,13 +78,16 @@ export default async function PlannerPage(props: {
   const availability = getEmployeeAvailabilityForDate(date, employees);
 
   const dateISO = date.toISOString().slice(0, 10);
+  const monday = startOfWeek(date);
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-base font-semibold text-stone-800">
-            Planner für {dateISO}
+            Woche vom {formatDDMM(monday)} (Mo) bis {formatDDMM(friday)} (Fr)
           </h2>
           <p className="text-xs text-stone-500">
             {/* REQ: OFP-UI-020 */}

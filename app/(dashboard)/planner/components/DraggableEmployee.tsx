@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
-import type { Absence, Employee, WorkSchedule } from "@prisma/client";
+import type { Absence, Employee, WorkSchedule } from "@/generated/prisma/client";
 import type { EmployeeAvailability } from "@/lib/domain/availability";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { EmployeeSettingsDialog } from "./EmployeeSettingsDialog";
@@ -42,13 +42,14 @@ export function DraggableEmployee(props: DraggableEmployeeProps) {
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{ ...style, opacity: isDragging ? 0 : undefined }}
       className={[
         "flex items-center justify-between rounded-xl border px-2 py-1",
         "border-stone-200 bg-stone-50",
         isAvailable ? "cursor-grab" : "opacity-50 cursor-not-allowed",
         isDragging ? "ring-2 ring-yellow-300 shadow-lg" : ""
       ].join(" ")}
+      suppressHydrationWarning
       {...(isAvailable ? { ...listeners, ...attributes } : {})}
     >
       <div className="flex items-center gap-2">
@@ -79,6 +80,7 @@ export function DraggableEmployee(props: DraggableEmployeeProps) {
         <button
           type="button"
           className="inline-flex h-6 w-6 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 hover:text-stone-700"
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={() => setOpen(true)}
         >
           <Cog6ToothIcon className="h-4 w-4" />

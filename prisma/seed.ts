@@ -6,9 +6,14 @@
  * Seed-Skript: legt 9 Mitarbeitende, WorkSchedules, Absences,
  * Desk-Zonen (A–D) und einige Beispiel-Assignments mit Halbtags-Slots an.
  */
-import { PrismaClient, TimeSlot } from "@prisma/client";
+import "dotenv/config";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaClient, TimeSlot } from "../generated/prisma/client";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaBetterSqlite3({
+  url: process.env.DATABASE_URL ?? "file:./prisma/dev.db",
+});
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   // Cleanup for idempotentes Seed
@@ -18,17 +23,17 @@ async function main() {
   await prisma.desk.deleteMany();
   await prisma.employee.deleteMany();
 
-  const employees = await prisma.employee.createMany({
+  await prisma.employee.createMany({
     data: [
-      { name: "Anna Keller", initials: "AK", avatarColor: "#F97316" },
-      { name: "Ben Meier", initials: "BM", avatarColor: "#22C55E" },
-      { name: "Clara Vogel", initials: "CV", avatarColor: "#6366F1" },
-      { name: "David Steiner", initials: "DS", avatarColor: "#EC4899" },
-      { name: "Eva Roth", initials: "ER", avatarColor: "#14B8A6" },
-      { name: "Felix Hartmann", initials: "FH", avatarColor: "#A855F7" },
-      { name: "Gina Wolf", initials: "GW", avatarColor: "#FBBF24" },
-      { name: "Hugo Blum", initials: "HB", avatarColor: "#0EA5E9" },
-      { name: "Ida König", initials: "IK", avatarColor: "#F97316" }
+      { name: "Colette Müller", initials: "cm", avatarColor: "#F97316" },
+      { name: "Petra Imgrüt", initials: "pi", avatarColor: "#22C55E" },
+      { name: "Ursi Schmidt", initials: "us", avatarColor: "#6366F1" },
+      { name: "Beat Schuler", initials: "bs", avatarColor: "#EC4899" },
+      { name: "Monika Kempf", initials: "mk", avatarColor: "#14B8A6" },
+      { name: "Daniel Ritter", initials: "dr", avatarColor: "#A855F7" },
+      { name: "Gioia Gisler", initials: "gg", avatarColor: "#FBBF24" },
+      { name: "Joana Büchi", initials: "jb", avatarColor: "#0EA5E9" },
+      { name: "Liliane Schuler", initials: "ls", avatarColor: "#F97316" }
     ]
   });
 
@@ -71,19 +76,21 @@ async function main() {
   }
 
   // Desk-Zonen A–D im 12x12 Grid
-  const desks = await prisma.desk.createMany({
+  await prisma.desk.createMany({
     data: [
       // Zone A: zwei übereinanderliegende grosse Tische
-      { label: "A1", gridX: 1, gridY: 1, gridW: 4, gridH: 2, rotation: 0 },
-      { label: "A2", gridX: 1, gridY: 3, gridW: 4, gridH: 2, rotation: 0 },
+      { label: "EWK 1", gridX: 1, gridY: 1, gridW: 3, gridH: 2, rotation: 0 },
+      { label: "EWK 2", gridX: 1, gridY: 3, gridW: 3, gridH: 2, rotation: 0 },
       // Zone B: grosser Tisch unterhalb Zone A
-      { label: "B1", gridX: 1, gridY: 7, gridW: 4, gridH: 2, rotation: 0 },
+      { label: "Steuern 1", gridX: 1, gridY: 6, gridW: 3, gridH: 2, rotation: 0 },
+      { label: "Steuern 2", gridX: 1, gridY: 8, gridW: 3, gridH: 2, rotation: 0 },
+      { label: "Steuern 3", gridX: 1, gridY: 11, gridW: 3, gridH: 2, rotation: 0 },
       // Zone C: Cluster (vertikal + zwei horizontale)
-      { label: "C1", gridX: 8, gridY: 1, gridW: 2, gridH: 4, rotation: 90 },
-      { label: "C2", gridX: 10, gridY: 1, gridW: 3, gridH: 2, rotation: 0 },
-      { label: "C3", gridX: 10, gridY: 3, gridW: 3, gridH: 2, rotation: 0 },
+      { label: "C1", gridX: 5, gridY: 1, gridW: 2, gridH: 3, rotation: 90 },
+      { label: "C2", gridX: 7, gridY: 1, gridW: 3, gridH: 2, rotation: 0 },
+      { label: "C3", gridX: 7, gridY: 3, gridW: 3, gridH: 2, rotation: 0 },
       // Zone D: breiter Meeting-Tisch unten rechts
-      { label: "D1", gridX: 8, gridY: 8, gridW: 5, gridH: 3, rotation: 0 }
+      { label: "D1", gridX: 5, gridY: 11, gridW: 3, gridH: 2, rotation: 0 }
     ]
   });
 

@@ -59,3 +59,9 @@ export async function deleteAbsence(absenceId: number) {
   revalidatePath("/planner");
 }
 
+/** Server Action für Form: liest absenceId aus FormData und ruft deleteAbsence auf. */
+export async function deleteAbsenceForm(formData: FormData) {
+  const absenceId = Number(formData.get("absenceId"));
+  await deleteAbsence(absenceId);
+}
+

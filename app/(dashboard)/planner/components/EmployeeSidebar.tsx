@@ -4,7 +4,7 @@
  */
 "use client";
 
-import type { Employee } from "@prisma/client";
+import type { Employee } from "@/generated/prisma/client";
 import type { EmployeeAvailability } from "@/lib/domain/availability";
 import { DraggableEmployee } from "./DraggableEmployee";
 
@@ -21,7 +21,7 @@ export function EmployeeSidebar(props: EmployeeSidebarProps) {
       <h3 className="mb-2 text-sm font-semibold text-stone-800">
         Mitarbeitende
       </h3>
-      <div className="space-y-1 overflow-y-auto pr-1 text-sm">
+      <div className="space-y-1 overflow-x-hidden overflow-y-auto pr-1 text-sm">
         {employees.map((emp) => (
           <DraggableEmployee
             key={emp.id}

@@ -5,7 +5,7 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import type { Employee } from "@prisma/client";
+import type { Employee } from "@/generated/prisma/client";
 import type { TimeSlot } from "@/lib/domain/types";
 import type { EmployeeAvailability } from "@/lib/domain/availability";
 

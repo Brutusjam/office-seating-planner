@@ -4,7 +4,7 @@
  *
  * DeskMap: 12x12 CSS-Grid mit DeskSlotContainern für MORNING/AFTERNOON.
  */
-import type { Desk, Employee } from "@prisma/client";
+import type { Desk, Employee } from "@/generated/prisma/client";
 import type { EmployeeAvailability } from "@/lib/domain/availability";
 import type { TimeSlot } from "@/lib/domain/types";
 import { DeskSlotContainer } from "./DeskSlotContainer";

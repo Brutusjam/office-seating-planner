@@ -4,7 +4,7 @@
  *
  * Verfügbarkeitslogik auf Basis von Absences und WorkSchedule.
  */
-import type { Absence, Employee, WorkSchedule } from "@prisma/client";
+import type { Absence, Employee, WorkSchedule } from "@/generated/prisma/client";
 
 export type AvailabilityStatus = "AVAILABLE" | "UNAVAILABLE";
 

@@ -7,8 +7,8 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Tabs from "@radix-ui/react-tabs";
-import type { Absence, Employee, WorkSchedule } from "@prisma/client";
-import { upsertWorkSchedule, createAbsence, deleteAbsence } from "../settings-actions";
+import type { Absence, Employee, WorkSchedule } from "@/generated/prisma/client";
+import { upsertWorkSchedule, createAbsence, deleteAbsenceForm } from "../settings-actions";
 
 interface EmployeeSettingsDialogProps {
   employee: Employee;
@@ -83,12 +83,8 @@ export function EmployeeSettingsDialog(props: EmployeeSettingsDialogProps) {
                       </div>
                       <div className="text-[11px] text-stone-500">{a.reason}</div>
                     </div>
-                    <form
-                      action={async () => {
-                        "use server";
-                        await deleteAbsence(a.id);
-                      }}
-                    >
+                    <form action={deleteAbsenceForm}>
+                      <input type="hidden" name="absenceId" value={a.id} />
                       <button
                         type="submit"
                         className="rounded-full px-2 py-0.5 text-[11px] text-rose-500 hover:bg-rose-50"
@@ -145,14 +141,14 @@ export function EmployeeSettingsDialog(props: EmployeeSettingsDialogProps) {
             </Tabs.Content>
           </Tabs.Root>
 
-          <Dialog.Close asChild>
-            <button
-              type="button"
-              className="absolute right-3 top-3 text-xs text-stone-400 hover:text-stone-600"
-            >
-              Schliessen
-            </button>
-          </Dialog.Close>
+          <button
+            type="button"
+            className="absolute right-3 top-3 text-xs text-stone-400 hover:text-stone-600"
+            onClick={() => onOpenChange(false)}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            Schliessen
+          </button>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
