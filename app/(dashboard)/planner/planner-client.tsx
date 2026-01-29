@@ -32,7 +32,7 @@ import type {
 import { useRouter } from "next/navigation";
 import { DeskMap } from "./components/DeskMap";
 import { EmployeeSidebar } from "./components/EmployeeSidebar";
-import { assignEmployeeToDesk } from "./actions";
+import { assignEmployeeToDesk, clearAssignmentForSlot } from "./actions";
 import { applyPreferencesForDate } from "./actions";
 
 type EmployeeWithRelations = Employee & {
@@ -96,11 +96,38 @@ export function PlannerClient(props: PlannerClientProps) {
     return map;
   }, [availability]);
 
+  const assignedSlotsByEmployee = useMemo(() => {
+    const map: Record<
+      number,
+      { morning: boolean; afternoon: boolean }
+    > = {};
+    for (const emp of employees) {
+      let morning = false;
+      let afternoon = false;
+      for (const [key, employeeId] of Object.entries(assignmentState)) {
+        if (employeeId !== emp.id) continue;
+        if (key.endsWith("_MORNING")) morning = true;
+        if (key.endsWith("_AFTERNOON")) afternoon = true;
+      }
+      map[emp.id] = { morning, afternoon };
+    }
+    return map;
+  }, [employees, assignmentState]);
+
   function handleApplyPreferences() {
     startApplyingPreferences(async () => {
       await applyPreferencesForDate(date);
       router.refresh();
     });
+  }
+
+  async function handleClearSlot(deskId: number, slot: TimeSlot) {
+    setAssignmentState((prev) => ({
+      ...prev,
+      [makeKey(deskId, slot)]: null
+    }));
+    await clearAssignmentForSlot(new Date(date), deskId, slot);
+    router.refresh();
   }
 
   function handleDragStart(event: DragStartEvent) {
@@ -196,6 +223,7 @@ export function PlannerClient(props: PlannerClientProps) {
               return slotAvailability?.status !== "UNAVAILABLE";
             }) : employees}
             availabilityByEmployee={availabilityByEmployee}
+            assignedSlotsByEmployee={assignedSlotsByEmployee}
             desks={desks}
             onApplyPreferences={handleApplyPreferences}
             applyingPreferences={isApplyingPreferences}
@@ -227,9 +255,9 @@ export function PlannerClient(props: PlannerClientProps) {
               <DeskMap
                 desks={desks}
                 employees={employees}
-                availabilityByEmployee={availabilityByEmployee}
                 assignmentState={assignmentState}
                 highlightFreeDesks={highlightFreeDesks}
+                onClearSlot={handleClearSlot}
               />
             </div>
           </div>

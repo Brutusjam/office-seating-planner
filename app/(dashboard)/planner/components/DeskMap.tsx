@@ -5,7 +5,7 @@
  * DeskMap: 12x12 CSS-Grid mit DeskSlotContainern für MORNING/AFTERNOON.
  */
 import type { Desk, Employee } from "@/generated/prisma/client";
-import type { EmployeeDayAvailability } from "@/lib/domain/availability";
+import type { TimeSlot } from "@/lib/domain/types";
 import { DeskSlotContainer } from "./DeskSlotContainer";
 
 const FLOOR_COLS = 24;
@@ -14,18 +14,18 @@ const FLOOR_ROWS = 18;
 interface DeskMapProps {
   desks: Desk[];
   employees: Employee[];
-  availabilityByEmployee: Record<number, EmployeeDayAvailability>;
   assignmentState: Record<string, number | null>; // `${deskId}_${slot}` -> employeeId
   highlightFreeDesks?: boolean;
+  onClearSlot: (deskId: number, slot: TimeSlot) => void;
 }
 
 export function DeskMap(props: DeskMapProps) {
   const {
     desks,
     employees,
-    availabilityByEmployee,
     assignmentState,
-    highlightFreeDesks
+    highlightFreeDesks,
+    onClearSlot
   } = props;
 
   return (
@@ -66,9 +66,9 @@ export function DeskMap(props: DeskMapProps) {
               <DeskSlotContainer
                 desk={desk}
                 employees={employees}
-                availabilityByEmployee={availabilityByEmployee}
                 morningEmployeeId={assignmentState[morningKey] ?? null}
                 afternoonEmployeeId={assignmentState[afternoonKey] ?? null}
+                onClearSlot={onClearSlot}
               />
             </div>
           );

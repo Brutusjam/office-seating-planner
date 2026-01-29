@@ -8,9 +8,15 @@ import type { Desk, Employee } from "@/generated/prisma/client";
 import type { EmployeeDayAvailability } from "@/lib/domain/availability";
 import { DraggableEmployee } from "./DraggableEmployee";
 
+interface AssignedSlots {
+  morning: boolean;
+  afternoon: boolean;
+}
+
 interface EmployeeSidebarProps {
   employees: Employee[];
   availabilityByEmployee: Record<number, EmployeeDayAvailability>;
+  assignedSlotsByEmployee: Record<number, AssignedSlots>;
   desks: Desk[];
   onApplyPreferences?: () => void;
   applyingPreferences?: boolean;
@@ -20,6 +26,7 @@ export function EmployeeSidebar(props: EmployeeSidebarProps) {
   const {
     employees,
     availabilityByEmployee,
+    assignedSlotsByEmployee,
     desks,
     onApplyPreferences,
     applyingPreferences
@@ -36,6 +43,8 @@ export function EmployeeSidebar(props: EmployeeSidebarProps) {
             key={emp.id}
             employee={emp}
             availability={availabilityByEmployee[emp.id] ?? null}
+            isMorningAssigned={assignedSlotsByEmployee[emp.id]?.morning}
+            isAfternoonAssigned={assignedSlotsByEmployee[emp.id]?.afternoon}
             desks={desks}
           />
         ))}

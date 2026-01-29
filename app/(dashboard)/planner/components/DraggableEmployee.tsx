@@ -25,11 +25,13 @@ interface DraggableEmployeeProps {
     preferences?: Preference[];
   };
   availability: EmployeeDayAvailability | null;
+  isMorningAssigned?: boolean;
+  isAfternoonAssigned?: boolean;
   desks: Desk[];
 }
 
 export function DraggableEmployee(props: DraggableEmployeeProps) {
-  const { employee, availability, desks } = props;
+  const { employee, availability, isMorningAssigned, isAfternoonAssigned, desks } = props;
 
   const [open, setOpen] = useState(false);
 
@@ -84,6 +86,10 @@ export function DraggableEmployee(props: DraggableEmployeeProps) {
                 availability.morning.status === "AVAILABLE"
                   ? "bg-emerald-400"
                   : "bg-rose-300"
+              } ${
+                availability.morning.status === "AVAILABLE" && isMorningAssigned === false
+                  ? "ring-2 ring-red-400 ring-offset-1 ring-offset-stone-50"
+                  : ""
               }`}
               title={availability.morning.reason ?? undefined}
             />
@@ -92,6 +98,10 @@ export function DraggableEmployee(props: DraggableEmployeeProps) {
                 availability.afternoon.status === "AVAILABLE"
                   ? "bg-emerald-400"
                   : "bg-rose-300"
+              } ${
+                availability.afternoon.status === "AVAILABLE" && isAfternoonAssigned === false
+                  ? "ring-2 ring-red-400 ring-offset-1 ring-offset-stone-50"
+                  : ""
               }`}
               title={availability.afternoon.reason ?? undefined}
             />

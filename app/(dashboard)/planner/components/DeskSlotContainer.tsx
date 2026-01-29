@@ -5,27 +5,24 @@
  */
 import { useDroppable } from "@dnd-kit/core";
 import type { Desk, Employee } from "@/generated/prisma/client";
-import type {
-  EmployeeDayAvailability,
-  HalfDayAvailability
-} from "@/lib/domain/availability";
+import type { TimeSlot } from "@/lib/domain/types";
 import { DroppableDeskSlot } from "./DroppableDeskSlot";
 
 interface DeskSlotContainerProps {
   desk: Desk;
   employees: Employee[];
-  availabilityByEmployee: Record<number, EmployeeDayAvailability>;
   morningEmployeeId: number | null;
   afternoonEmployeeId: number | null;
+  onClearSlot: (deskId: number, slot: TimeSlot) => void;
 }
 
 export function DeskSlotContainer(props: DeskSlotContainerProps) {
   const {
     desk,
     employees,
-    availabilityByEmployee,
     morningEmployeeId,
-    afternoonEmployeeId
+    afternoonEmployeeId,
+    onClearSlot
   } = props;
 
   const morningEmployee =
@@ -36,22 +33,6 @@ export function DeskSlotContainer(props: DeskSlotContainerProps) {
     afternoonEmployeeId !== null
       ? (employees.find((e) => e.id === afternoonEmployeeId) ?? null)
       : null;
-
-  const getAvailabilityFor = (
-    employee: Employee | null,
-    slot: "MORNING" | "AFTERNOON"
-  ): HalfDayAvailability | null => {
-    if (!employee) return null;
-    const day = availabilityByEmployee[employee.id];
-    if (!day) return null;
-    return slot === "MORNING" ? day.morning : day.afternoon;
-  };
-
-  const morningAvailability = getAvailabilityFor(morningEmployee, "MORNING");
-  const afternoonAvailability = getAvailabilityFor(
-    afternoonEmployee,
-    "AFTERNOON"
-  );
 
   const { setNodeRef: setHeaderRef, isOver: isHeaderOver } = useDroppable({
     id: `desk-${desk.id}-HEADER`,
@@ -90,14 +71,14 @@ export function DeskSlotContainer(props: DeskSlotContainerProps) {
           slot="MORNING"
           label="Vormittag"
           employee={morningEmployee}
-          availability={morningAvailability ?? null}
+          onClearSlot={onClearSlot}
         />
         <DroppableDeskSlot
           deskId={desk.id}
           slot="AFTERNOON"
           label="Nachmittag"
           employee={afternoonEmployee}
-          availability={afternoonAvailability ?? null}
+          onClearSlot={onClearSlot}
         />
       </div>
     </div>

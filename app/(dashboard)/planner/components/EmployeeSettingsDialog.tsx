@@ -332,4 +332,3 @@ function renderPreferenceRow(
     </div>
   );
 }
-

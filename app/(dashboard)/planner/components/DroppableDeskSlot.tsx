@@ -7,18 +7,18 @@
 import { useDroppable } from "@dnd-kit/core";
 import type { Employee } from "@/generated/prisma/client";
 import type { TimeSlot } from "@/lib/domain/types";
-import type { HalfDayAvailability } from "@/lib/domain/availability";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 interface DroppableDeskSlotProps {
   deskId: number;
   slot: TimeSlot;
   label: string;
   employee: Employee | null;
-  availability: HalfDayAvailability | null;
+  onClearSlot?: (deskId: number, slot: TimeSlot) => void;
 }
 
 export function DroppableDeskSlot(props: DroppableDeskSlotProps) {
-  const { deskId, slot, label, employee, availability } = props;
+  const { deskId, slot, label, employee, onClearSlot } = props;
 
   const { isOver, setNodeRef } = useDroppable({
     id: `desk-${deskId}-${slot}`,
@@ -46,22 +46,18 @@ export function DroppableDeskSlot(props: DroppableDeskSlotProps) {
           <span className="text-xs text-stone-400">Leer</span>
         )}
       </div>
-      {employee && availability && (
-        <div className="ml-2 flex flex-col items-end gap-0.5">
-          <span
-            className={`inline-flex h-2.5 w-2.5 rounded-full ${
-              availability.status === "AVAILABLE"
-                ? "bg-emerald-400"
-                : "bg-rose-300"
-            }`}
-            title={availability.reason ?? undefined}
-          />
-          {availability.reason && (
-            <span className="max-w-[6rem] truncate text-[10px] text-stone-500">
-              {availability.reason}
-            </span>
-          )}
-        </div>
+      {employee && onClearSlot && (
+        <button
+          type="button"
+          className="ml-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-stone-400 hover:bg-stone-200 hover:text-stone-600"
+          title="Zuteilung entfernen"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClearSlot(deskId, slot);
+          }}
+        >
+          <XMarkIcon className="h-4 w-4" />
+        </button>
       )}
     </div>
   );

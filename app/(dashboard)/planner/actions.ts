@@ -44,6 +44,18 @@ export async function assignEmployeeToDesk(
   revalidatePath("/planner");
 }
 
+export async function clearAssignmentForSlot(
+  date: Date,
+  deskId: number,
+  slot: TimeSlot
+): Promise<void> {
+  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  await prisma.assignment.deleteMany({
+    where: { date: day, deskId, slot }
+  });
+  revalidatePath("/planner");
+}
+
 /** Präferenzen für einen bestimmten Tag (beide Halbtage) anwenden. */
 export async function applyPreferencesForDate(dateISO: string): Promise<void> {
   if (!dateISO) return;
@@ -96,4 +108,3 @@ export async function applyPreferencesForDate(dateISO: string): Promise<void> {
 
   revalidatePath("/planner");
 }
-

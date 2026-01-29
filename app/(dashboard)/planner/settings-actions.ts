@@ -126,4 +126,3 @@ export async function upsertPreferencesForEmployee(formData: FormData) {
 
   revalidatePath("/planner");
 }
-
