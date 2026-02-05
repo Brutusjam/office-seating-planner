@@ -43,7 +43,8 @@ export function DraggableEmployee(props: DraggableEmployeeProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: employee.id,
-      disabled: !isAvailable
+      // Kein disabled - alle Mitarbeiter sind draggable (auch für Ausnahme-Zuweisungen)
+      data: { isAvailable }
     });
 
   const style: React.CSSProperties = transform
@@ -58,12 +59,14 @@ export function DraggableEmployee(props: DraggableEmployeeProps) {
       style={{ ...style, opacity: isDragging ? 0 : undefined }}
       className={[
         "flex items-center justify-between rounded-xl border px-2 py-1",
-        "border-stone-200 bg-stone-50",
-        isAvailable ? "cursor-grab" : "opacity-50 cursor-not-allowed",
+        "border-stone-200 bg-stone-50 cursor-grab",
+        !isAvailable ? "opacity-60" : "",
         isDragging ? "ring-2 ring-yellow-300 shadow-lg" : ""
       ].join(" ")}
+      title={!isAvailable ? "Ausnahme-Zuweisung möglich" : undefined}
       suppressHydrationWarning
-      {...(isAvailable ? { ...listeners, ...attributes } : {})}
+      {...listeners}
+      {...attributes}
     >
       <div className="flex items-center gap-2">
         <div

@@ -4,7 +4,7 @@
  */
 "use client";
 
-import { useDroppable } from "@dnd-kit/core";
+import { useDroppable, useDndContext } from "@dnd-kit/core";
 import type { Employee } from "@/generated/prisma/client";
 import type { TimeSlot } from "@/lib/domain/types";
 import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -25,8 +25,14 @@ export function DroppableDeskSlot(props: DroppableDeskSlotProps) {
     data: { deskId, slot }
   });
 
+  // Prüfen ob der aktuell gezogene Mitarbeiter nicht verfügbar ist (Ausnahme-Zuweisung)
+  const { active } = useDndContext();
+  const isExceptionDrop = isOver && active?.data?.current?.isAvailable === false;
+
   const bg = isOver
-    ? "bg-yellow-50 border-yellow-300"
+    ? isExceptionDrop
+      ? "bg-orange-50 border-orange-300" // Orange für Ausnahme-Zuweisung
+      : "bg-yellow-50 border-yellow-300" // Gelb für normale Zuweisung
     : slot === "MORNING"
       ? "bg-stone-50"
       : "bg-stone-100";
