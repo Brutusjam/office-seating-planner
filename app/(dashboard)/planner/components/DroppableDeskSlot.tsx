@@ -14,11 +14,12 @@ interface DroppableDeskSlotProps {
   slot: TimeSlot;
   label: string;
   employee: Employee | null;
+  guestName?: string | null;
   onClearSlot?: (deskId: number, slot: TimeSlot) => void;
 }
 
 export function DroppableDeskSlot(props: DroppableDeskSlotProps) {
-  const { deskId, slot, label, employee, onClearSlot } = props;
+  const { deskId, slot, label, employee, guestName, onClearSlot } = props;
 
   const { isOver, setNodeRef } = useDroppable({
     id: `desk-${deskId}-${slot}`,
@@ -46,7 +47,7 @@ export function DroppableDeskSlot(props: DroppableDeskSlotProps) {
         <span className="text-[11px] font-medium text-stone-600">{label}</span>
         {employee ? (
           <span className="text-xs text-stone-800">
-            {employee.name}
+            {guestName ? guestName : employee.name}
           </span>
         ) : (
           <span className="text-xs text-stone-400">Leer</span>

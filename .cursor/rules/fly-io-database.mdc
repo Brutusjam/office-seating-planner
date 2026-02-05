@@ -1,0 +1,76 @@
+---
+description: Anleitung zum Bearbeiten der SQLite-Datenbank auf Fly.io
+alwaysApply: true
+---
+
+# Fly.io Datenbank-Verwaltung
+
+## Voraussetzungen
+
+- App: `office-seating-planner`
+- Datenbank: SQLite unter `/data/dev.db`
+- Backup: `/data/dev.db.backup` (falls vorhanden)
+
+## Schritt 1: Maschine starten
+
+```powershell
+fly machine start 148e65edf72598 --app office-seating-planner
+```
+
+## Schritt 2: Script erstellen und hochladen
+
+Erstelle ein Node.js Script (z.B. `db-script.js`):
+
+```javascript
+const Database = require('/app/node_modules/better-sqlite3');
+const db = new Database('/data/dev.db');
+
+// Beispiel: Neuen Employee einfügen
+const insert = db.prepare(`
+  INSERT INTO Employee (name, initials, avatarColor) VALUES (?, ?, ?)
+`);
+const result = insert.run('Name', 'XX', '#FARBE');
+console.log('Erstellt mit ID:', result.lastInsertRowid);
+
+// WorkSchedule erstellen (alle Tage aktiv)
+db.prepare(`
+  INSERT INTO WorkSchedule (employeeId, mondayMorning, mondayAfternoon, 
+    tuesdayMorning, tuesdayAfternoon, wednesdayMorning, wednesdayAfternoon, 
+    thursdayMorning, thursdayAfternoon, fridayMorning, fridayAfternoon)
+  VALUES (?, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+`).run(result.lastInsertRowid);
+
+db.close();
+```
+
+Hochladen:
+
+```powershell
+fly sftp put db-script.js /tmp/db-script.js --app office-seating-planner
+```
+
+## Schritt 3: Script ausführen
+
+```powershell
+fly ssh console --app office-seating-planner --command "node /tmp/db-script.js"
+```
+
+## Wichtige Hinweise
+
+- **Backup erstellen** vor Änderungen: `fs.copyFileSync('/data/dev.db', '/data/dev.db.backup')`
+- **Maschine stoppt automatisch** nach Inaktivität (auto_stop_machines)
+- **"The handle is invalid"** Fehler am Ende ist ein Windows-SSH-Problem, ignorieren
+- Script-Dateien mit **neuem Namen** hochladen (SFTP überschreibt nicht)
+
+## Nützliche SQL-Befehle
+
+```javascript
+// Alle Employees anzeigen
+db.prepare('SELECT * FROM Employee').all();
+
+// Employee löschen
+db.prepare('DELETE FROM Employee WHERE id = ?').run(id);
+
+// Employee umbenennen
+db.prepare('UPDATE Employee SET name = ? WHERE id = ?').run('Neuer Name', id);
+```

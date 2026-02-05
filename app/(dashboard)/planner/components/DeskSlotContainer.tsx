@@ -4,13 +4,14 @@
  * und einer zusätzlichen Drop-Zone auf dem Header für Ganztags-Zuordnung.
  */
 import { useDroppable } from "@dnd-kit/core";
-import type { Desk, Employee } from "@/generated/prisma/client";
+import type { Assignment, Desk, Employee } from "@/generated/prisma/client";
 import type { TimeSlot } from "@/lib/domain/types";
 import { DroppableDeskSlot } from "./DroppableDeskSlot";
 
 interface DeskSlotContainerProps {
   desk: Desk;
   employees: Employee[];
+  assignments: Assignment[];
   morningEmployeeId: number | null;
   afternoonEmployeeId: number | null;
   onClearSlot: (deskId: number, slot: TimeSlot) => void;
@@ -20,10 +21,14 @@ export function DeskSlotContainer(props: DeskSlotContainerProps) {
   const {
     desk,
     employees,
+    assignments,
     morningEmployeeId,
     afternoonEmployeeId,
     onClearSlot
   } = props;
+
+  const morningAssignment = assignments.find((a) => a.slot === "MORNING");
+  const afternoonAssignment = assignments.find((a) => a.slot === "AFTERNOON");
 
   const morningEmployee =
     morningEmployeeId !== null
@@ -71,6 +76,7 @@ export function DeskSlotContainer(props: DeskSlotContainerProps) {
           slot="MORNING"
           label="Vormittag"
           employee={morningEmployee}
+          guestName={morningAssignment?.guestName ?? null}
           onClearSlot={onClearSlot}
         />
         <DroppableDeskSlot
@@ -78,6 +84,7 @@ export function DeskSlotContainer(props: DeskSlotContainerProps) {
           slot="AFTERNOON"
           label="Nachmittag"
           employee={afternoonEmployee}
+          guestName={afternoonAssignment?.guestName ?? null}
           onClearSlot={onClearSlot}
         />
       </div>

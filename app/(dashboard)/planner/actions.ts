@@ -13,12 +13,13 @@ interface AssignEmployeeToDeskInput {
   deskId: number;
   employeeId: number;
   slot: TimeSlot;
+  guestName?: string;
 }
 
 export async function assignEmployeeToDesk(
   input: AssignEmployeeToDeskInput
 ): Promise<void> {
-  const { date, deskId, employeeId, slot } = input;
+  const { date, deskId, employeeId, slot, guestName } = input;
 
   const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
@@ -37,7 +38,8 @@ export async function assignEmployeeToDesk(
       date: day,
       slot,
       deskId,
-      employeeId
+      employeeId,
+      guestName: guestName || null
     }
   });
 

@@ -32,6 +32,7 @@ import type {
 import { useRouter } from "next/navigation";
 import { DeskMap } from "./components/DeskMap";
 import { EmployeeSidebar } from "./components/EmployeeSidebar";
+import { JokerNameDialog } from "./components/JokerNameDialog";
 import { assignEmployeeToDesk, clearAssignmentForSlot } from "./actions";
 import { applyPreferencesForDate } from "./actions";
 
@@ -87,6 +88,15 @@ export function PlannerClient(props: PlannerClientProps) {
   const [activeId, setActiveId] = useState<string | number | null>(null);
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
   const [highlightFreeDesks, setHighlightFreeDesks] = useState(false);
+
+  // Joker-Dialog State
+  const [jokerDialogOpen, setJokerDialogOpen] = useState(false);
+  const [pendingJokerAssignment, setPendingJokerAssignment] = useState<{
+    employeeId: number;
+    deskId: number;
+    slot: TimeSlot;
+    isHeader: boolean;
+  } | null>(null);
 
   const availabilityByEmployee = useMemo(() => {
     const map: Record<number, EmployeeDayAvailability> = {};
@@ -150,6 +160,31 @@ export function PlannerClient(props: PlannerClientProps) {
 
     if (!deskId) return;
 
+    // Prüfen ob der Mitarbeiter ein Joker ist
+    const employee = employees.find((e) => e.id === employeeId);
+    if (employee?.isJoker) {
+      // Dialog öffnen für Joker-Zuweisung
+      setPendingJokerAssignment({
+        employeeId,
+        deskId,
+        slot: slot || "MORNING",
+        isHeader: isHeader
+      });
+      setJokerDialogOpen(true);
+      return;
+    }
+
+    // Normale Zuweisung
+    await performAssignment(employeeId, deskId, slot, isHeader);
+  }
+
+  async function performAssignment(
+    employeeId: number,
+    deskId: number,
+    slot: TimeSlot | undefined,
+    isHeader: boolean,
+    guestName?: string
+  ) {
     const dateObj = new Date(date);
 
     if (isHeader) {
@@ -179,7 +214,8 @@ export function PlannerClient(props: PlannerClientProps) {
           date: dateObj,
           deskId,
           employeeId,
-          slot: s
+          slot: s,
+          guestName
         });
       }
       return;
@@ -206,8 +242,23 @@ export function PlannerClient(props: PlannerClientProps) {
       date: dateObj,
       deskId,
       employeeId,
-      slot
+      slot,
+      guestName
     });
+  }
+
+  async function handleJokerConfirm(guestName: string) {
+    setJokerDialogOpen(false);
+    if (pendingJokerAssignment) {
+      const { employeeId, deskId, slot, isHeader } = pendingJokerAssignment;
+      await performAssignment(employeeId, deskId, isHeader ? undefined : slot, isHeader, guestName || undefined);
+      setPendingJokerAssignment(null);
+    }
+  }
+
+  function handleJokerCancel() {
+    setJokerDialogOpen(false);
+    setPendingJokerAssignment(null);
   }
 
   return (
@@ -255,6 +306,7 @@ export function PlannerClient(props: PlannerClientProps) {
               <DeskMap
                 desks={desks}
                 employees={employees}
+                assignments={assignments}
                 assignmentState={assignmentState}
                 highlightFreeDesks={highlightFreeDesks}
                 onClearSlot={handleClearSlot}
@@ -310,6 +362,13 @@ export function PlannerClient(props: PlannerClientProps) {
           })() : null}
         </DragOverlay>
       </DndContext>
+
+      <JokerNameDialog
+        open={jokerDialogOpen}
+        onOpenChange={setJokerDialogOpen}
+        onConfirm={handleJokerConfirm}
+        onCancel={handleJokerCancel}
+      />
     </div>
   );
 }
